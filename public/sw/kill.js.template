@@ -1,0 +1,72 @@
+/*
+ * Kill Service Worker 模板 —— 整套清除方案的核心武器。
+ *
+ * 为什么它能赢对抗：
+ *  1. 浏览器对「SW 脚本更新请求」走的是浏览器内部网络通道（请求头 Service-Worker: script），
+ *     页面里的恶意 JS 和已注册的恶意 SW 都无法拦截、伪造这个响应。
+ *  2. 服务端对清单外 / 被篡改的脚本 URL 一律下发本文件，字节级更新会触发浏览器的
+ *     install → activate 流程，配合 skipWaiting + clients.claim 立即夺权。
+ *  3. 夺权后只删除「恶意缓存」（精确名 + 恶意前缀），受保护的合法前缀（app-v）原样保留，
+ *     因此正常离线功能不受影响。
+ *  4. 最后 unregister 自己，并通知页面重新注册清单里的合法 SW。
+ *
+ * 清除策略占位符（SWGUARD_KILL_CONFIG 标记处）由服务端读取清单后注入。
+ */
+'use strict';
+
+const KILL_CONFIG = /** @type {import('../src/core/types').KillConfig & {scope:string,protectedPrefixes:string[]}} */ (
+  /*__SWGUARD_KILL_CONFIG__*/ {}
+);
+
+self.addEventListener('install', (event) => {
+  // 不等待旧 SW 释放控制权，立即激活
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      // 1) 夺权：保证当前所有同源页面立刻被 kill SW 控制
+      await self.clients.claim();
+
+      // 2) 精准清缓存：恶意的删，合法的留
+      const allNames = await caches.keys();
+      const exact = new Set(KILL_CONFIG.purgeExactCacheNames || []);
+      const prefixes = KILL_CONFIG.purgeCachePrefixes || [];
+      const protectedPrefixes = KILL_CONFIG.protectedPrefixes || [];
+
+      const isProtected = (name) => protectedPrefixes.some((p) => name.startsWith(p));
+      const isMalicious = (name) =>
+        exact.has(name) || prefixes.some((p) => name.startsWith(p));
+
+      const toDelete = allNames.filter((name) => !isProtected(name) && isMalicious(name));
+      await Promise.all(toDelete.map((name) => caches.delete(name)));
+
+      // 3) 通知所有受控页面：kill 已生效，页面侧执行存储清理并重新注册合法 SW
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      for (const client of clients) {
+        client.postMessage({
+          type: 'swguard:killed',
+          scope: KILL_CONFIG.scope,
+          deletedCaches: toDelete,
+          preservedCaches: allNames.filter((n) => !toDelete.includes(n)),
+          purgeStorageKeys: KILL_CONFIG.purgeStorageKeys || [],
+        });
+      }
+
+      // 4) 注销自身。下一次导航时页面将处于「无控制器」状态，由 reconcile 重新注册合法 SW
+      await self.registration.unregister();
+    })(),
+  );
+});
+
+// 恶意页面可能仍在 postMessage 试探；kill SW 对任何注册类指令一律拒绝响应，
+// 只回答状态，避免被利用来伪造「已恢复正常」的回执。
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'swguard:ping') {
+    event.source?.postMessage({ type: 'swguard:kill-active' });
+  }
+});
+
+// 不注册任何 fetch 处理器：kill SW 激活期间请求直接走网络，
+// 既不会继续投毒，也不会破坏离线页（合法缓存仍在，合法 SW 重装后即可恢复）。

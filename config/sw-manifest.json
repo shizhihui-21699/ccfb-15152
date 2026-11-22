@@ -1,0 +1,29 @@
+{
+  "$schema": "../src/core/manifest-schema.json",
+  "serviceWorkers": [
+    {
+      "scriptUrl": "/sw.js",
+      "scope": "/",
+      "version": "app-v3",
+      "sha256": "FILLED_AT_RUNTIME",
+      "cachePrefixes": ["app-v"]
+    }
+  ],
+  "hardening": {
+    "updateViaCache": "none",
+    "scriptMaxAgeSeconds": 0,
+    "allowedScriptPrefixes": ["/sw.js", "/sw/"],
+    "allowedImportPrefixes": ["/sw/imports/"],
+    "workerCsp": "default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'self'",
+    "pageCsp": "default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'"
+  },
+  "kill": {
+    "purgeCachePrefixes": ["evil-", "attacker-", "malware-"],
+    "purgeExactCacheNames": ["evil-cache-v1"],
+    "purgeStorageKeys": []
+  },
+  "beacon": {
+    "endpoint": "/__swguard/beacon",
+    "manifestEndpoint": "/__swguard/manifest"
+  }
+}

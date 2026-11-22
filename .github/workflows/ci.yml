@@ -1,0 +1,47 @@
+name: sw-guard-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 构建页面侧调和库
+        run: npm run build:client
+
+      - name: 类型检查
+        run: npm run typecheck
+
+      - name: 单元测试
+        run: npm run test:unit
+
+      # 上线前门禁：只扫清单登记的可信 SW，error 级命中（退出码 2）阻断流水线
+      - name: 静态审计（CI 视角，仅可信 SW）
+        run: npm run audit -- scan
+
+      - name: 安装 Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: 浏览器自动化 E2E（感染→清除→恢复全链路）
+        run: npm run test:e2e
+
+      - name: 上传 Playwright 报告
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: test-report/
+          retention-days: 14

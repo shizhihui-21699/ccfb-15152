@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>CSP 防护测试页</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <!-- 不加载 reconcile.js，专门用于观察 CSP 对原始注册行为的拦截 -->
+    <script src="/csp-test.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <h1>CSP worker-src 防护测试</h1>
+      <pre id="out">running…</pre>
+    </main>
+  </body>
+</html>

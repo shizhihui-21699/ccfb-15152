@@ -1,0 +1,29 @@
+{
+  "name": "sw-guard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Service Worker 安全管理方案：恶意服务脚本的发现、清除、预防与上线前检测",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:client": "tsx scripts/build-client.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "server": "tsx src/server/main.ts",
+    "audit": "tsx src/audit/cli.ts",
+    "audit:all": "tsx src/audit/cli.ts all --all",
+    "test:e2e": "playwright test --config=playwright.config.ts",
+    "test:unit": "vitest run",
+    "report": "tsx src/audit/inspect-report.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

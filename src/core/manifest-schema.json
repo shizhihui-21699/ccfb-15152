@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "sw-guard site manifest",
+  "type": "object",
+  "required": ["serviceWorkers", "hardening", "kill", "beacon"],
+  "properties": {
+    "serviceWorkers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["scriptUrl", "scope", "version", "sha256", "cachePrefixes"],
+        "properties": {
+          "scriptUrl": { "type": "string", "pattern": "^/[^/].*" },
+          "scope": { "type": "string", "pattern": "^/" },
+          "version": { "type": "string", "minLength": 1 },
+          "sha256": {
+            "type": "string",
+            "pattern": "^([a-fA-F0-9]{64}|FILLED_AT_RUNTIME)$"
+          },
+          "cachePrefixes": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "hardening": {
+      "type": "object",
+      "required": ["updateViaCache", "allowedScriptPrefixes", "workerCsp", "pageCsp"],
+      "properties": {
+        "updateViaCache": { "enum": ["none", "imports", "all"] },
+        "scriptMaxAgeSeconds": { "type": "integer", "minimum": 0 },
+        "allowedScriptPrefixes": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "allowedImportPrefixes": { "type": "array", "items": { "type": "string" } },
+        "workerCsp": { "type": "string" },
+        "pageCsp": { "type": "string" }
+      }
+    },
+    "kill": {
+      "type": "object",
+      "required": ["purgeCachePrefixes", "purgeExactCacheNames"],
+      "properties": {
+        "purgeCachePrefixes": { "type": "array", "items": { "type": "string" } },
+        "purgeExactCacheNames": { "type": "array", "items": { "type": "string" } },
+        "purgeStorageKeys": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "beacon": {
+      "type": "object",
+      "required": ["endpoint", "manifestEndpoint"],
+      "properties": {
+        "endpoint": { "type": "string" },
+        "manifestEndpoint": { "type": "string" }
+      }
+    }
+  }
+}

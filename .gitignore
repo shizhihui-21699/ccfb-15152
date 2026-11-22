@@ -16,3 +16,10 @@ node_modules/
 __pycache__/
 .venv/
 venv/
+
+# sw-guard 运行数据与测试产物
+.data/
+test-results/
+test-report/
+playwright-report/
+

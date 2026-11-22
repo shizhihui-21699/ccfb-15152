@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>感染入口（测试用）</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <!-- 故意不加载 reconcile.js：模拟事故窗口期攻击者控制的页面 -->
+    <script src="/infected.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <h1>感染模拟入口</h1>
+      <section class="card">
+        <p>
+          本页仅在服务端 <code>infected</code> 模式下有意义：此时对 <code>/sw.js</code>
+          的浏览器内部 SW 请求会收到被篡改的字节。点击下面按钮注册恶意 SW，
+          之后即使服务端恢复干净，该访客的浏览器仍会执行攻击者代码。
+        </p>
+        <div class="row">
+          <button id="btn-infect">注册恶意 Service Worker</button>
+          <button id="btn-home" class="secondary">回到首页观察污染</button>
+        </div>
+        <pre id="out"></pre>
+      </section>
+    </main>
+  </body>
+</html>

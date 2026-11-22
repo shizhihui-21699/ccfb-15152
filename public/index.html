@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SW Guard 演示站</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <!-- 页面侧调和库：每个 HTML 页面都必须引用，且不允许内联（CSP script-src 'self'） -->
+    <script src="/reconcile.js" defer></script>
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <h1>SW Guard · Service Worker 安全管理演示</h1>
+
+      <section class="card">
+        <div class="row">
+          <strong>当前控制器：</strong>
+          <span id="controller" class="badge ok">检测中…</span>
+        </div>
+        <div class="row row-gap">
+          <strong>污染标记：</strong>
+          <span id="evil-marker" class="badge ok">未检测到注入</span>
+        </div>
+        <div class="row row-gap">
+          <strong>合法离线缓存：</strong>
+          <span id="cache-state" class="badge ok">检测中…</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>手动操作</h2>
+        <div class="row">
+          <button id="btn-update">强制检查 SW 更新</button>
+          <button id="btn-unregister" class="secondary">注销全部 SW</button>
+          <button id="btn-offline" class="secondary">验证离线页缓存</button>
+          <button id="btn-refresh" class="secondary">刷新状态</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>事件日志</h2>
+        <ul id="status-log"></ul>
+      </section>
+
+      <section class="card">
+        <h2>攻击/恢复入口（仅测试环境）</h2>
+        <p>
+          访问 <code>/infected</code> 可模拟在「感染窗口期」访问站点并注册恶意 SW；
+          服务端切换到 <code>remediating</code> 模式后，浏览器内部更新通道会下发 kill SW 完成清除。
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
